@@ -5,6 +5,7 @@ description = "App integrates with Google Alert Center API"
 license = "Copyright (c) Splunk, 2025"
 requires-python = ">=3.13, <3.15"
 authors = [
+    "Bartosz Debek"
 ]
 dependencies = [
     "google-api-python-client>=2.190.0",
