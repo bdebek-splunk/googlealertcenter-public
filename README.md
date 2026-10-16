@@ -50,7 +50,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'list alerts'
 
-list alerts
+List alerts from Google Alert Center.
 
 Type: **generic** <br>
 Read only: **True**
@@ -61,7 +61,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **customerId** | optional | Customer ID in format C01234567. This overrides the customer ID in the asset. | string | |
 **filter** | optional | Filter expression for alert retrieval. | string | |
-**pageSize** | optional | Maximum number of alerts to return. | string | |
+**pageSize** | optional | Maximum number of alerts to return. Must be a positive integer. | numeric | |
 **orderBy** | optional | Field to order alerts by. | string | |
 
 #### Action Output
@@ -72,7 +72,7 @@ action_result.status | string | | success failure |
 action_result.message | string | | |
 action_result.parameter.customerId | string | | |
 action_result.parameter.filter | string | | |
-action_result.parameter.pageSize | string | | |
+action_result.parameter.pageSize | numeric | | |
 action_result.parameter.orderBy | string | | |
 action_result.data.\*.data.\*.alertId | string | | |
 action_result.data.\*.data.\*.customerId | string | | |
@@ -81,8 +81,8 @@ action_result.data.\*.data.\*.startTime | string | | |
 action_result.data.\*.data.\*.endTime | string | | |
 action_result.data.\*.data.\*.type | string | | |
 action_result.data.\*.data.\*.source | string | | |
-action_result.data.\*.data.\*.securityInverstigationToolLink | string | | |
-action_result.data.\*.data.\*.deleted | string | | |
+action_result.data.\*.data.\*.securityInvestigationToolLink | string | | |
+action_result.data.\*.data.\*.deleted | boolean | | |
 action_result.data.\*.data.\*.updateTime | string | | |
 action_result.data.\*.data.\*.etag | string | | |
 action_result.data.\*.data.\*.metadata.customerId | string | | |
@@ -92,19 +92,13 @@ action_result.data.\*.data.\*.metadata.assignee | string | | |
 action_result.data.\*.data.\*.metadata.updateTime | string | | |
 action_result.data.\*.data.\*.metadata.severity | string | | |
 action_result.data.\*.data.\*.metadata.etag | string | | |
-action_result.data.\*.data.\*.data.deviceId | string | | |
-action_result.data.\*.data.\*.data.serialNumber | string | | |
-action_result.data.\*.data.\*.data.deviceType | string | | |
-action_result.data.\*.data.\*.data.deviceModel | string | | |
-action_result.data.\*.data.\*.data.resourceId | string | | |
-action_result.data.\*.data.\*.data.iosVendorId | string | | |
-action_result.data.\*.data.\*.data.deviceCompromisedState | string | | |
+action_result.data.\*.data.\*.data | object | | Type-specific alert data |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'get alert'
 
-get alert
+Retrieve an alert by its ID.
 
 Type: **generic** <br>
 Read only: **True**
@@ -113,7 +107,7 @@ Read only: **True**
 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**alertId** | required | ID of the alert to retrieve | string | |
+**alertId** | required | ID of the Google Alert Center alert. | string | |
 **customerId** | optional | Customer ID in format C01234567. This overrides the customer ID in the asset. | string | |
 
 #### Action Output
@@ -131,8 +125,8 @@ action_result.data.\*.startTime | string | | |
 action_result.data.\*.endTime | string | | |
 action_result.data.\*.type | string | | |
 action_result.data.\*.source | string | | |
-action_result.data.\*.securityInverstigationToolLink | string | | |
-action_result.data.\*.deleted | string | | |
+action_result.data.\*.securityInvestigationToolLink | string | | |
+action_result.data.\*.deleted | boolean | | |
 action_result.data.\*.updateTime | string | | |
 action_result.data.\*.etag | string | | |
 action_result.data.\*.metadata.customerId | string | | |
@@ -142,28 +136,22 @@ action_result.data.\*.metadata.assignee | string | | |
 action_result.data.\*.metadata.updateTime | string | | |
 action_result.data.\*.metadata.severity | string | | |
 action_result.data.\*.metadata.etag | string | | |
-action_result.data.\*.data.deviceId | string | | |
-action_result.data.\*.data.serialNumber | string | | |
-action_result.data.\*.data.deviceType | string | | |
-action_result.data.\*.data.deviceModel | string | | |
-action_result.data.\*.data.resourceId | string | | |
-action_result.data.\*.data.iosVendorId | string | | |
-action_result.data.\*.data.deviceCompromisedState | string | | |
+action_result.data.\*.data | object | | Type-specific alert data |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'delete alert'
 
-delete alert
+Mark an alert for deletion in Google Alert Center.
 
 Type: **generic** <br>
-Read only: **True**
+Read only: **False**
 
 #### Action Parameters
 
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**alertId** | required | ID of the alert to retrieve | string | |
+**alertId** | required | ID of the Google Alert Center alert. | string | |
 **customerId** | optional | Customer ID in format C01234567. This overrides the customer ID in the asset. | string | |
 
 #### Action Output
@@ -185,6 +173,8 @@ Type: **ingest** <br>
 Read only: **True**
 
 Callback action for the on_poll ingest functionality
+
+Polled artifacts retain the full Google alert in `data`. Their `cef` fields contain normalized alert identifiers, source, type, timestamps, customer metadata, status, and assignee. Scalar fields from the type-specific Google `data` object are flattened under `googleAlertData_*` CEF field names; nested objects are flattened by path and arrays are stored as JSON strings. Custom CEF fields may need to be added to the SOAR instance before they are available in field pickers.
 
 #### Action Parameters
 

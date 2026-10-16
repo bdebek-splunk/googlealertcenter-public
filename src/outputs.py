@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any
+
 from soar_sdk.action_results import ActionOutput
 
 
@@ -24,16 +26,6 @@ class AlertMetadata(ActionOutput):
     etag: str = ""
 
 
-class AlertData(ActionOutput):
-    deviceId: str = ""
-    serialNumber: str = ""
-    deviceType: str = ""
-    deviceModel: str = ""
-    resourceId: str = ""
-    iosVendorId: str = ""
-    deviceCompromisedState: str = ""
-
-
 class AlertDetails(ActionOutput):
     alertId: str = ""
     customerId: str = ""
@@ -42,12 +34,12 @@ class AlertDetails(ActionOutput):
     endTime: str = ""
     type: str = ""
     source: str = ""
-    securityInverstigationToolLink: str = ""
-    deleted: str = ""
+    securityInvestigationToolLink: str = ""
+    deleted: bool = False
     updateTime: str = ""
     etag: str = ""
     metadata: AlertMetadata | None = None
-    data: AlertData | None = None
+    data: dict[str, Any] | None = None
 
 
 class ListAlertsOutput(ActionOutput):

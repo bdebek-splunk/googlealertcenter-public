@@ -22,14 +22,14 @@ class ListAlertsParams(Params):
     filter: str = Param(
         description="Filter expression for alert retrieval.", required=False
     )
-    pageSize: str = Param(
+    pageSize: int | None = Param(
         description="Maximum number of alerts to return.", required=False
     )
     orderBy: str = Param(description="Field to order alerts by.", required=False)
 
 
 class GetAlertParams(Params):
-    alertId: str = Param(description="ID of the alert to retrieve", required=True)
+    alertId: str = Param(description="ID of the Google Alert Center alert.", required=True)
     customerId: str = Param(
         description="Customer ID in format C01234567. This overrides the customer ID in the asset.",
         required=False,
