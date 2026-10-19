@@ -15,18 +15,20 @@ import datetime as dt
 import json
 import re
 from collections.abc import Iterator
+from urllib.parse import unquote, urlsplit
 
+from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from soar_sdk.abstract import SOARClient
-from soar_sdk.action_results import ActionOutput
+from soar_sdk.action_results import ActionOutput, MakeRequestOutput
 from soar_sdk.app import App
 from soar_sdk.asset import AssetField, BaseAsset
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.params import OnPollParams
+from soar_sdk.params import MakeRequestParams, OnPollParams
 
 from .consts import GOOGLE_API_SCOPES
 from .outputs import AlertDetails, ListAlertsOutput
@@ -146,6 +148,50 @@ def _resolve_customer_id(
 ) -> str | None:
     customer_id = action_customer_id or asset_customer_id
     return customer_id.lstrip("C") if customer_id else None
+
+
+def _make_request_url(endpoint: str) -> str:
+    parsed_endpoint = urlsplit(endpoint)
+    path = parsed_endpoint.path.lstrip("/")
+    decoded_path = unquote(path)
+    if (
+        parsed_endpoint.scheme
+        or parsed_endpoint.netloc
+        or parsed_endpoint.query
+        or parsed_endpoint.fragment
+        or "\\" in path
+        or any(part in {".", ".."} for part in decoded_path.split("/"))
+        or not decoded_path.startswith("v1beta1/")
+    ):
+        raise ActionFailure(
+            "endpoint must be a relative Google Alert Center v1beta1 API path, "
+            "such as /v1beta1/alerts"
+        )
+    return f"https://alertcenter.googleapis.com/{path}"
+
+
+def _parse_request_object(value: str | None, name: str) -> dict | None:
+    if not value:
+        return None
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as e:
+        raise ActionFailure(f"{name} must be a JSON object") from e
+    if not isinstance(parsed, dict):
+        raise ActionFailure(f"{name} must be a JSON object")
+    return parsed
+
+
+def _parse_query_parameters(value: str | None) -> dict | str | None:
+    if not value:
+        return None
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return value.lstrip("?")
+    if not isinstance(parsed, dict):
+        raise ActionFailure("query_parameters must be a JSON object or query string")
+    return parsed
 
 
 def _paginate(
@@ -352,6 +398,71 @@ def delete_alert(
         ) from e
     soar.set_message(f"Deleted alert with ID {alert_id} from Google Alert Center")
     return ActionOutput()
+
+
+@app.make_request()
+def make_request(
+    params: MakeRequestParams, asset: Asset, soar: SOARClient
+) -> MakeRequestOutput:
+    """Send an authenticated request to a Google Alert Center v1beta1 endpoint."""
+    url = _make_request_url(params.endpoint)
+    method = params.http_method.upper()
+    allowed_methods = {
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "HEAD",
+        "OPTIONS",
+    }
+    if method not in allowed_methods:
+        raise ActionFailure(f"Unsupported HTTP method: {params.http_method}")
+
+    headers = _parse_request_object(params.headers, "headers") or {}
+    if not all(
+        isinstance(key, str) and isinstance(value, str)
+        for key, value in headers.items()
+    ):
+        raise ActionFailure("headers must contain string names and values")
+    restricted_headers = {"authorization", "host", "proxy-authorization"}
+    if restricted_headers.intersection(key.lower() for key in headers):
+        raise ActionFailure("headers cannot override authentication or host headers")
+
+    query_parameters = _parse_query_parameters(params.query_parameters)
+    body = None
+    if params.body:
+        try:
+            body = json.loads(params.body)
+        except json.JSONDecodeError as e:
+            raise ActionFailure("body must contain valid JSON") from e
+
+    credentials = _load_credentials(soar, asset)
+    timeout = params.timeout if params.timeout is not None else 30
+    if timeout < 1:
+        raise ActionFailure("timeout must be a positive integer")
+
+    request_kwargs = {
+        "headers": headers,
+        "params": query_parameters,
+        "timeout": timeout,
+        "verify": params.verify_ssl,
+    }
+    if body is not None:
+        request_kwargs["json"] = body
+
+    try:
+        with AuthorizedSession(credentials) as session:
+            response = session.request(method, url, **request_kwargs)
+    except Exception as e:
+        raise ActionFailure(
+            f"Error making request to Google Alert Center: {e!s}"
+        ) from e
+
+    return MakeRequestOutput(
+        status_code=response.status_code,
+        response_body=response.text,
+    )
 
 
 @app.on_poll()

@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any
+import json
 
+from pydantic import field_validator
 from soar_sdk.action_results import ActionOutput
 
 
@@ -39,7 +40,14 @@ class AlertDetails(ActionOutput):
     updateTime: str = ""
     etag: str = ""
     metadata: AlertMetadata | None = None
-    data: dict[str, Any] | None = None
+    data: str | None = None
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def serialize_type_specific_data(cls, value: object) -> str | None:
+        if value is None or isinstance(value, str):
+            return value
+        return json.dumps(value, ensure_ascii=False)
 
 
 class ListAlertsOutput(ActionOutput):

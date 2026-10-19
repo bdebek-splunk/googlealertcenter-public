@@ -24,6 +24,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [list alerts](#action-list-alerts) - list alerts <br>
 [get alert](#action-get-alert) - get alert <br>
 [delete alert](#action-delete-alert) - delete alert <br>
+[make request](#action-make-request) - make request <br>
 [on poll](#action-on-poll) - on poll
 
 ## action: 'test connectivity'
@@ -92,7 +93,7 @@ action_result.data.\*.data.\*.metadata.assignee | string | | |
 action_result.data.\*.data.\*.metadata.updateTime | string | | |
 action_result.data.\*.data.\*.metadata.severity | string | | |
 action_result.data.\*.data.\*.metadata.etag | string | | |
-action_result.data.\*.data.\*.data | object | | Type-specific alert data |
+action_result.data.\*.data.\*.data | string | | JSON-encoded type-specific alert data |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -136,7 +137,7 @@ action_result.data.\*.metadata.assignee | string | | |
 action_result.data.\*.metadata.updateTime | string | | |
 action_result.data.\*.metadata.severity | string | | |
 action_result.data.\*.metadata.etag | string | | |
-action_result.data.\*.data | object | | Type-specific alert data |
+action_result.data.\*.data | string | | JSON-encoded type-specific alert data |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
@@ -164,6 +165,41 @@ action_result.parameter.alertId | string | | |
 action_result.parameter.customerId | string | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
+
+## action: 'make request'
+
+Send an authenticated HTTP request to the Google Alert Center API.
+
+Type: **generic** <br>
+Read only: **False**
+
+The endpoint must be a relative path under the Google Alert Center `v1beta1`
+API, such as `/v1beta1/alerts` or `/v1beta1/alerts/ALERT_ID`. The action uses
+the service account and delegated account configured on the asset. It returns
+the HTTP status code and response body, including for API error responses.
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**http_method** | required | HTTP method for the request. | string | |
+**endpoint** | required | Relative Google Alert Center v1beta1 API path. | string | |
+**headers** | optional | Request headers as a JSON object. Authentication and host headers cannot be overridden. | string | |
+**query_parameters** | optional | Query parameters as a JSON object or query string. | string | |
+**body** | optional | JSON request body. | string | |
+**timeout** | optional | Request timeout in seconds. Defaults to 30. | numeric | |
+**verify_ssl** | optional | Verify the Google API TLS certificate. | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.data.\*.status_code | numeric | | 200 |
+action_result.data.\*.response_body | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1
 
 ## action: 'on poll'
 
