@@ -28,11 +28,15 @@ from soar_sdk.exceptions import ActionFailure
 from soar_sdk.logging import getLogger
 from soar_sdk.models.artifact import Artifact
 from soar_sdk.models.container import Container
-from soar_sdk.params import MakeRequestParams, OnPollParams
+from soar_sdk.params import OnPollParams
 
-from .consts import GOOGLE_API_SCOPES
+from .consts import GOOGLE_API_SCOPES, GOOGLE_API_BASE_URL
 from .outputs import AlertDetails, ListAlertsOutput
-from .params import GetAlertParams, ListAlertsParams
+from .params import (
+    GetAlertParams,
+    GoogleAlertCenterMakeRequestParams,
+    ListAlertsParams,
+)
 
 
 logger = getLogger()
@@ -167,7 +171,7 @@ def _make_request_url(endpoint: str) -> str:
             "endpoint must be a relative Google Alert Center v1beta1 API path, "
             "such as /v1beta1/alerts"
         )
-    return f"https://alertcenter.googleapis.com/{path}"
+    return f"{GOOGLE_API_BASE_URL}/{path}"
 
 
 def _parse_request_object(value: str | None, name: str) -> dict | None:
@@ -216,6 +220,9 @@ def _paginate(
 
     # Manual polls are intentionally independent of the scheduled poll cursor.
     if params.is_manual_poll():
+        # Each alert creates one container and one artifact, so honor both caps.
+        container_limit = int(params.container_count)
+        limit = min(limit, container_limit) if limit else container_limit
         alert_list = []
         page_token = None
         if limit:
@@ -248,7 +255,7 @@ def _paginate(
 
     pending_alerts = list(asset.cache_state.get("pending_alerts", []))
     page_token = asset.cache_state.get("page_token")
-    latest_alert_time = asset.cache_state.get("poll_latest_time", last_polled_time)
+    latest_alert_time = asset.cache_state.get("poll_latest_time") or last_polled_time
     alert_list = []
 
     logger.debug(f"Starting pagination with parameters: {parameters}")
@@ -271,8 +278,8 @@ def _paginate(
                     logger.info("No more pages to fetch, stopping pagination")
                     break
 
-            remaining_capacity = limit - len(alert_list) if limit else len(
-                pending_alerts
+            remaining_capacity = (
+                limit - len(alert_list) if limit else len(pending_alerts)
             )
             page_alerts = pending_alerts[:remaining_capacity]
             pending_alerts = pending_alerts[remaining_capacity:]
@@ -285,6 +292,9 @@ def _paginate(
                     or _parse_time(alert_time) > _parse_time(latest_alert_time)
                 ):
                     latest_alert_time = alert_time
+            if not pending_alerts and not page_token:
+                # The final page is fully consumed; do not restart from page one.
+                break
         except Exception as e:
             raise ActionFailure(
                 f"Error paginating through alerts from Google Alert Center: {e!s}"
@@ -402,7 +412,7 @@ def delete_alert(
 
 @app.make_request()
 def make_request(
-    params: MakeRequestParams, asset: Asset, soar: SOARClient
+    params: GoogleAlertCenterMakeRequestParams, asset: Asset, soar: SOARClient
 ) -> MakeRequestOutput:
     """Send an authenticated request to a Google Alert Center v1beta1 endpoint."""
     url = _make_request_url(params.endpoint)

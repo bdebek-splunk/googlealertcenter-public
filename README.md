@@ -188,7 +188,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **query_parameters** | optional | Query parameters as a JSON object or query string. | string | |
 **body** | optional | JSON request body. | string | |
 **timeout** | optional | Request timeout in seconds. Defaults to 30. | numeric | |
-**verify_ssl** | optional | Verify the Google API TLS certificate. | boolean | |
+**verify_ssl** | optional | Verify the Google API TLS certificate. Defaults to True. | boolean | |
 
 #### Action Output
 
@@ -218,8 +218,8 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **start_time** | optional | Start of time range, in epoch time (milliseconds). | numeric | |
 **end_time** | optional | End of time range, in epoch time (milliseconds). | numeric | |
-**container_count** | optional | Maximum number of container records to query for. | numeric | |
-**artifact_count** | optional | Maximum number of artifact records to query for. | numeric | |
+**container_count** | optional | Maximum number of containers for a manual poll. Each alert creates one container. | numeric | |
+**artifact_count** | optional | Maximum number of alerts to ingest. Each alert creates one artifact; manual polls also honor container_count. | numeric | |
 **container_id** | optional | Comma-separated list of container IDs to limit the ingestion to. | string | |
 
 #### Action Output

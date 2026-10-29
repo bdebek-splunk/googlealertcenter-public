@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from soar_sdk.params import Param, Params
+from soar_sdk.params import MakeRequestParams, Param, Params
 
 
 class ListAlertsParams(Params):
@@ -29,8 +29,18 @@ class ListAlertsParams(Params):
 
 
 class GetAlertParams(Params):
-    alertId: str = Param(description="ID of the Google Alert Center alert.", required=True)
+    alertId: str = Param(
+        description="ID of the Google Alert Center alert.", required=True
+    )
     customerId: str = Param(
         description="Customer ID in format C01234567. This overrides the customer ID in the asset.",
         required=False,
+    )
+
+
+class GoogleAlertCenterMakeRequestParams(MakeRequestParams):
+    verify_ssl: bool = Param(
+        description="Verify the Google API TLS certificate. Defaults to True.",
+        required=False,
+        default=True,
     )

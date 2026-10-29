@@ -13,3 +13,4 @@
 # limitations under the License.
 # Define your constants here
 GOOGLE_API_SCOPES = ["https://www.googleapis.com/auth/apps.alerts"]
+GOOGLE_API_BASE_URL = "https://alertcenter.googleapis.com"
