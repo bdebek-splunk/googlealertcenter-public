@@ -1,4 +1,4 @@
-# googlealertcenter
+# Google Alert Center
 
 Publisher: Splunk <br>
 Connector Version: 1.0.0 <br>
@@ -10,7 +10,7 @@ App integrates with Google Alert Center API
 
 ### Configuration variables
 
-This table lists the configuration variables required to operate googlealertcenter. These variables are specified when configuring a Google Alert Center asset in Splunk SOAR.
+This table lists the configuration variables required to operate Google Alert Center. These variables are specified when configuring a Google Alert Center asset in Splunk SOAR.
 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------

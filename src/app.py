@@ -114,7 +114,7 @@ class Asset(BaseAsset):
 
 
 app = App(
-    name="googlealertcenter",
+    name="Google Alert Center",
     app_type="endpoint",
     logo="googlealertcenter.svg",
     logo_dark="googlealertcenter_dark.svg",
