@@ -409,7 +409,7 @@ wheels = [
 ]
 
 [[package]]
-name = "googlealertcenter-fdse"
+name = "googlealertcenter"
 version = "1.0.0"
 source = { virtual = "." }
 dependencies = [

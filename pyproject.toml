@@ -1,5 +1,5 @@
 [project]
-name = "googlealertcenter-fdse"
+name = "googlealertcenter"
 version = "1.0.0"
 description = "App integrates with Google Alert Center API"
 license = "Copyright (c) Splunk, 2025"
